@@ -8,6 +8,11 @@ from status import Status
 from controller import Controller
 
 
+def validate_password(realm, user, password):
+    with open('/home/pi/users.json') as fd:
+        users = json.loads(fd.read())
+    return unicode(user) in users and users[unicode(user)] == unicode(password)
+
 class HotTubServer(object):
 
     def __init__(self):
@@ -18,6 +23,9 @@ class HotTubServer(object):
     def index(self):
         return serve_file('/home/pi/hot-tub-controller/index.html',
                           'text/html')
+
+    def _validatepassword(self, user, password):
+        return True
 
     @cherrypy.expose
     def current(self):
@@ -66,7 +74,13 @@ class HotTubServer(object):
         return json.dumps(self.status.to_jsonable())
 
 
+def ascii_encode_dict(data):
+    ascii_encode = lambda x: x.encode('ascii') if isinstance(x, unicode) else x 
+    return dict(map(ascii_encode, pair) for pair in data.items())
+
+
 if __name__ == '__main__':
-    cherrypy.quickstart(HotTubServer(),
-                        '/',
-                        '/home/pi/hot-tub-controller/server.conf')
+    with open('/home/pi/hot-tub-controller/server.conf') as fd:
+        config = json.loads(fd.read(), object_hook=ascii_encode_dict)
+    config['/']['tools.auth_basic.checkpassword'] = validate_password
+    cherrypy.quickstart(HotTubServer(), '/', config)
