@@ -1,0 +1,15 @@
+
+.title {
+   font-weight: bold;
+   font-size: large;
+}
+
+table {
+    background-color: #b3d9ff;
+    border-collapse: collapse;
+}
+
+table, td {
+    border: 1px solid;
+}
+

@@ -1,0 +1,22 @@
+<html ng-app="itubApp">
+<head>
+   <link rel="stylesheet" type="text/css" href="/static/style.css"></link>
+   <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular.min.js"></script>
+
+   <script src="static/js/app.js"></script>
+
+</head>
+<body ng-controller="itubController">
+<span class="title">iTub Hot Tub Controller</span><br/>
+<table ng-show="loaded">
+<tr><td class="label">Heat:</td><td><select ng-change="onchangeHeater()" ng-model="heater" ng-options="option.value as option.label for option in [{'label': 'On', 'value': 1}, {'label': 'Off', 'value': 0}]"></select></td></tr>
+<tr><td class="label">Main Pump:</td><td><select ng-change="onchangePump1()" ng-model="pump1" ng-options="option.value as option.label for option in [{'label': 'Off', 'value': 0}, {'label': 'Low', 'value': 1}, {'label': 'High', 'value': 2}]"></select></td></tr>
+<tr><td class="label">Second Pump:</td><td><select ng-change="onchangePump2()" ng-model="pump2" ng-options="option.value as option.label for option in [{'label': 'Off', 'value': 0}, {'label': 'On', 'value': 1}]"></select></td></tr>
+<tr><td class="label">Air temp:</td><td>{{ tempAir | number: 1 }}</td></tr>
+<tr><td class="label">Water temp into heater</td><td>{{ tempIn | number: 1 }}</td></tr>
+<tr><td class="label">Water temp out of heater</td><td>{{ tempOut | number: 1 }}</td></tr>
+</table>
+<div ng-show="!loaded">Loading...</div>
+</body>
+</html>

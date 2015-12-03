@@ -10,6 +10,7 @@ class Status(object):
         self.filterStart = 0
         self.filterEnd = 1800
         self.freeze = 4.4
+        self.tempSet = 25
 
     def to_jsonable(self):
         return {
