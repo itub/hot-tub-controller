@@ -16,9 +16,9 @@
 <tr><td class="label">Air temp:</td><td>{{ tempAir | number: 1 }}</td></tr>
 <tr><td class="label">Water temp into heater</td><td>{{ tempIn | number: 1 }}</td></tr>
 <tr><td class="label">Water temp out of heater</td><td>{{ tempOut | number: 1 }}</td></tr>
-<tr ng-show="freeze_status !== 0"><td colspan="2>Freeze control: RUNNING</td></tr><
-<tr ng-show="filter_status !== 0"><td colspan="2">Filter is on</td></tr>
 </table>
+<div class="label" ng-show="loaded && freeze_status !== 0">Freeze control: RUNNING</div>
+<div class="label" ng-show="loaded && filter_status !== 0">Filter is on</td></div>
 <div ng-show="!loaded">Loading...</div>
 </body>
 </html>
