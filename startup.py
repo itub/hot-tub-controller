@@ -3,12 +3,15 @@
 import cherrypy
 from cherrypy.lib.static import serve_file
 
+import datetime
 import RPi.GPIO as GPIO
 import json
 from adc import ADCReader
 from status import Status
 import thermistor
 from controller import Controller
+from threading import Timer
+import subprocess
 
 
 def validate_password(realm, user, password):
@@ -16,12 +19,16 @@ def validate_password(realm, user, password):
         users = json.loads(fd.read())
     return unicode(user) in users and users[unicode(user)] == unicode(password)
 
+
 class HotTubServer(object):
 
     def __init__(self):
         self.adc = ADCReader()
         self.status = Status()
         self.controller = Controller()
+        self.freeze_status = 0
+        self.filter_status = 0
+        Timer(30.0, self.filter_timer).start()
 
     @cherrypy.expose
     def index(self):
@@ -31,12 +38,46 @@ class HotTubServer(object):
     def _validatepassword(self, user, password):
         return True
 
+    def filter_timer(self):
+        with open('/home/pi/filter.json') as fd:
+            filter_settings = json.loads(fd.read())
+        now = datetime.datetime.now()
+        seconds = (now.hour * 3600) + (now.minute * 60) + now.second
+        # freeze control checks
+        if self.status.tempAir < 42.0:
+            self.freeze_status = 1
+            self.controller.pump1_low()
+        elif (filter_settings['start'] <= seconds and
+              filter_settings['end'] >= seconds):
+            self.filter_status = 1
+            self.controller.pump1_low()
+        elif self.status.pump1 == 0:
+            self.controller.pump1_off()
+        if self.status.tempIn < 50.0:
+            print "WARNING: WATER TEMPERATURE ALERT. POSSIBLE POWER OUTAGE."
+            try:
+                with open('/home/pi/alerts.json') as fd:
+                    alerts = json.loads(fd.read())
+                subprocess.check_output(["curl",
+                    "http://textbelt.com/text",
+                    "-d",
+                    "number={}".format(alerts['number']),
+                    "-d",
+                    "WARNING: hot tub freeze alarm: {}F".format(
+                        self.status.tempIn)])
+            except Exception as err:
+                print "Error sending SMS alert: {}".format(err)
+        Timer(30.0, self.filter_timer).start()
+
     @cherrypy.expose
     def current(self):
         self.status.tempAir = thermistor.adc_value_to_F(self.adc.readadc(7))
         self.status.tempIn = thermistor.adc_value_to_F(self.adc.readadc(3))
         self.status.tempOut = thermistor.adc_value_to_F(self.adc.readadc(5))
-        return json.dumps(self.status.to_jsonable(), indent=4)
+        status = self.status.to_jsonable()
+        status['freeze_status'] = self.freeze_status
+        status['filter_status'] = self.filter_status
+        return json.dumps(status, indent=4)
 
     @cherrypy.expose
     def heater_on(self):
@@ -82,7 +123,7 @@ class HotTubServer(object):
 
 
 def ascii_encode_dict(data):
-    ascii_encode = lambda x: x.encode('ascii') if isinstance(x, unicode) else x 
+    ascii_encode = lambda x: x.encode('ascii') if isinstance(x, unicode) else x
     return dict(map(ascii_encode, pair) for pair in data.items())
 
 

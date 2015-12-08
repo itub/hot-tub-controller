@@ -17,6 +17,8 @@ var itubApp = angular.module('itubApp', [])
                 $scope.tempIn = status.tempIn;
                 $scope.tempOut = status.tempOut;
                 $scope.tempSet = status.tempSet;
+                $scope.freeze_status = status.freeze_status;
+                $scope.filter_status = status.filter_status;
                 $timeout(refresh, 5000);
             }).catch(function (err) {
                 // alert("Error retrieving status. " + err.statusText);
