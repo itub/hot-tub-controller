@@ -3,8 +3,11 @@
 import cherrypy
 from cherrypy.lib.static import serve_file
 
+import RPi.GPIO as GPIO
 import json
+from adc import ADCReader
 from status import Status
+import thermistor
 from controller import Controller
 
 
@@ -16,6 +19,7 @@ def validate_password(realm, user, password):
 class HotTubServer(object):
 
     def __init__(self):
+        self.adc = ADCReader()
         self.status = Status()
         self.controller = Controller()
 
@@ -29,6 +33,9 @@ class HotTubServer(object):
 
     @cherrypy.expose
     def current(self):
+        self.status.tempAir = thermistor.adc_value_to_F(self.adc.readadc(7))
+        self.status.tempIn = thermistor.adc_value_to_F(self.adc.readadc(3))
+        self.status.tempOut = thermistor.adc_value_to_F(self.adc.readadc(5))
         return json.dumps(self.status.to_jsonable(), indent=4)
 
     @cherrypy.expose
@@ -80,6 +87,11 @@ def ascii_encode_dict(data):
 
 
 if __name__ == '__main__':
+    try:
+        GPIO.cleanup()
+    except:
+        pass
+    GPIO.setmode(GPIO.BOARD)
     with open('/home/pi/hot-tub-controller/server.conf') as fd:
         config = json.loads(fd.read(), object_hook=ascii_encode_dict)
     config['/']['tools.auth_basic.checkpassword'] = validate_password

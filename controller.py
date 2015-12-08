@@ -9,7 +9,6 @@ class Controller(object):
     HEATER = 7
 
     def __init__(self):
-        GPIO.setmode(GPIO.BOARD)
         GPIO.setup([self.PUMP1_LOW, self.PUMP1_HIGH, self.PUMP2, self.HEATER],
                    GPIO.OUT, initial=GPIO.LOW)
 

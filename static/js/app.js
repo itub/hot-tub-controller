@@ -12,10 +12,10 @@ var itubApp = angular.module('itubApp', [])
             $scope.heater = status.heater;
             $scope.pump1 = status.pump1;
             $scope.pump2 = status.pump2;
-            $scope.tempAir = ((status.tempAir * 9.0) / 5.0) + 32;
-            $scope.tempIn = ((status.tempIn * 9.0) / 5.0) + 32;
-            $scope.tempOut = ((status.tempOut * 9.0) / 5.0) + 32;
-            $scope.tempSet = ((status.tempSet * 9.0) / 5.0) + 32;
+            $scope.tempAir = status.tempAir;
+            $scope.tempIn = status.tempIn;
+            $scope.tempOut = status.tempOut;
+            $scope.tempSet = status.tempSet;
         }).catch(function (err) {
             alert("Error retrieving status. " + err.statusText);
         });

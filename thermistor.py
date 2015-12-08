@@ -100,4 +100,4 @@ def adc_value_to_F(adc_value):
             delta = value - voltage_table[i - 1][0]
             step = voltage_table[i][0] - voltage_table[i-1][0]
             return voltage_table[i-1][1] + ((delta / (1.0 * step)) * (voltage_table[i][1] - voltage_table[i-1][1]))
-    raise "No matching value in table"
+    return 0  # raise Exception("No matching value in table: {}".format(value))
