@@ -63,7 +63,7 @@ class HotTubServer(object):
                     "-d",
                     "number={}".format(alerts['number']),
                     "-d",
-                    "message=WARNING: hot tub freeze alarm: {}F".format(
+                    "message=WARNING: hot tub freeze alarm: {.1f}F".format(
                         self.status.tempIn)])
                 print 'SMS response: {}'.format(out)
             except Exception as err:
