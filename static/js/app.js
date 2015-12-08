@@ -3,22 +3,28 @@
 /* App Module */
 
 var itubApp = angular.module('itubApp', [])
-    .controller('itubController', ['$scope', '$http', function($scope, $http) {
+    .controller('itubController', ['$scope', '$http', '$timeout', function($scope, $http, $timeout) {
         $scope.loaded = false;
 
-        $http.get('/current').then(function(response) {
-            $scope.loaded = true;
-            var status = response.data;
-            $scope.heater = status.heater;
-            $scope.pump1 = status.pump1;
-            $scope.pump2 = status.pump2;
-            $scope.tempAir = status.tempAir;
-            $scope.tempIn = status.tempIn;
-            $scope.tempOut = status.tempOut;
-            $scope.tempSet = status.tempSet;
-        }).catch(function (err) {
-            alert("Error retrieving status. " + err.statusText);
-        });
+        var refresh = function() {
+            $http.get('/current').then(function(response) {
+                $scope.loaded = true;
+                var status = response.data;
+                $scope.heater = status.heater;
+                $scope.pump1 = status.pump1;
+                $scope.pump2 = status.pump2;
+                $scope.tempAir = status.tempAir;
+                $scope.tempIn = status.tempIn;
+                $scope.tempOut = status.tempOut;
+                $scope.tempSet = status.tempSet;
+                $timeout(refresh, 5000);
+            }).catch(function (err) {
+                // alert("Error retrieving status. " + err.statusText);
+                $timeout(refresh, 5000);
+            });
+        };
+
+        refresh();
 
         $scope.onchangeHeater = function() {
             var url = "/heater_";
