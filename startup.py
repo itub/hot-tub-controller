@@ -44,12 +44,12 @@ class HotTubServer(object):
         now = datetime.datetime.now()
         seconds = (now.hour * 3600) + (now.minute * 60) + now.second
         # freeze control checks
-        if self.status.tempAir < 42.0:
-            self.freeze_status = 1
+        self.filter_status = 1 if (filter_settings['start'] <= seconds and
+              filter_settings['end'] >= seconds) else 0
+        self.freeze_status = 1 if self.status.tempAir < 42.0 else 0
+        if self.freeze_status == 1:
             self.controller.pump1_low()
-        elif (filter_settings['start'] <= seconds and
-              filter_settings['end'] >= seconds):
-            self.filter_status = 1
+        elif self.filter_status == 1:
             self.controller.pump1_low()
         elif self.status.pump1 == 0:
             self.controller.pump1_off()
