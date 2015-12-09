@@ -10,6 +10,7 @@ from adc import ADCReader
 from status import Status
 import thermistor
 from controller import Controller
+import threading
 from threading import Timer
 import subprocess
 
@@ -28,6 +29,7 @@ class HotTubServer(object):
         self.controller = Controller()
         self.freeze_status = 0
         self.filter_status = 0
+        self.adclock = threading.Lock()
         Timer(30.0, self.filter_timer).start()
 
     @cherrypy.expose
@@ -39,6 +41,7 @@ class HotTubServer(object):
         return True
 
     def filter_timer(self):
+        self.current()
         with open('/home/pi/filter.json') as fd:
             filter_settings = json.loads(fd.read())
         now = datetime.datetime.now()
@@ -72,13 +75,17 @@ class HotTubServer(object):
 
     @cherrypy.expose
     def current(self):
-        self.status.tempAir = thermistor.adc_value_to_F(self.adc.readadc(7))
-        self.status.tempIn = thermistor.adc_value_to_F(self.adc.readadc(3))
-        self.status.tempOut = thermistor.adc_value_to_F(self.adc.readadc(5))
-        status = self.status.to_jsonable()
-        status['freeze_status'] = self.freeze_status
-        status['filter_status'] = self.filter_status
-        return json.dumps(status, indent=4)
+        try:
+            self.adclock.acquire(True)
+            self.status.tempAir = thermistor.adc_value_to_F(self.adc.readadc(7))
+            self.status.tempIn = thermistor.adc_value_to_F(self.adc.readadc(3))
+            self.status.tempOut = thermistor.adc_value_to_F(self.adc.readadc(5))
+            status = self.status.to_jsonable()
+            status['freeze_status'] = self.freeze_status
+            status['filter_status'] = self.filter_status
+            return json.dumps(status, indent=4)
+        finally:
+            self.adclock.release()
 
     @cherrypy.expose
     def heater_on(self):
