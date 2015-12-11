@@ -1,3 +1,4 @@
+import collections
 import RPi.GPIO as GPIO
 
 
@@ -16,6 +17,7 @@ class ADCReader(object):
         GPIO.setup(self.SPIMISO, GPIO.IN)
         GPIO.setup(self.SPICLK, GPIO.OUT)
         GPIO.setup(self.SPICS, GPIO.OUT)
+        self.readings = {}
 
     # read SPI data from MCP3008 chip, 8 possible adc's (0 thru 7)
     def readadc(self, adcnum):
@@ -50,4 +52,5 @@ class ADCReader(object):
         GPIO.output(self.SPICS, True)
 
         adcout >>= 1       # first bit is 'null' so drop it
-        return adcout
+        self.readings.setdefault(adcnum, collections.deque([], 5)).append(adcout)
+        return (sum(self.readings[adcnum]) * 1.0) / len(self.readings[adcnum])
