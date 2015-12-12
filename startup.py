@@ -50,11 +50,11 @@ class HotTubServer(object):
         self.filter_status = 1 if (filter_settings['start'] <= seconds and
               filter_settings['end'] >= seconds) else 0
         self.freeze_status = 1 if self.status.tempAir < 42.0 else 0
-        if self.freeze_status == 1:
+        if self.freeze_status == 1 and self.status.pump1 == 0:
             self.controller.pump1_low()
-        elif self.filter_status == 1:
+        elif self.filter_status == 1 and self.status.pump1 == 0:
             self.controller.pump1_low()
-        elif self.status.pump1 == 0:
+        elif self.status.pump1 == 0 and (not self.filter_status == 1) and (not self.freeze_status == 1):
             self.controller.pump1_off()
         if self.status.tempIn < 50.0:
             print "WARNING: WATER TEMPERATURE ALERT. POSSIBLE POWER OUTAGE."
