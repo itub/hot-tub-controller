@@ -37,9 +37,6 @@ class HotTubServer(object):
         return serve_file('/home/pi/hot-tub-controller/index.html',
                           'text/html')
 
-    def _validatepassword(self, user, password):
-        return True
-
     def filter_timer(self):
         self.current()
         with open('/home/pi/filter.json') as fd:
