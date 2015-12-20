@@ -29,6 +29,7 @@ class HotTubServer(object):
         self.controller = Controller()
         self.freeze_status = 0
         self.filter_status = 0
+        self.last_alert = datetime.datetime.utcfromtimestamp(0)
         self.adclock = threading.Lock()
         Timer(30.0, self.filter_timer).start()
 
@@ -53,7 +54,8 @@ class HotTubServer(object):
             self.controller.pump1_low()
         elif self.status.pump1 == 0 and (not self.filter_status == 1) and (not self.freeze_status == 1):
             self.controller.pump1_off()
-        if self.status.tempIn < 50.0:
+        if self.status.tempIn < 50.0 and self.freeze_status == 1 and \
+            (datetime.datetime.now() - self.last_alert).total_seconds() > 3600:
             print "WARNING: WATER TEMPERATURE ALERT. POSSIBLE POWER OUTAGE."
             try:
                 with open('/home/pi/alerts.json') as fd:
@@ -63,11 +65,11 @@ class HotTubServer(object):
                     "-d",
                     "number={}".format(alerts['number']),
                     "-d",
-                    "message=WARNING: hot tub freeze alarm: {.1f}F".format(
+                    "message=WARNING: hot tub freeze alarm: {:.1f}F".format(
                         self.status.tempIn)])
                 print 'SMS response: {}'.format(out)
-            except Exception as err:
-                print "Error sending SMS alert: {}".format(err)
+                self.last_alert = datetime.datetime.now()
+            except Exception as err: print "Error sending SMS alert: {}".format(err)
         Timer(30.0, self.filter_timer).start()
 
     @cherrypy.expose
