@@ -7,6 +7,7 @@ import datetime
 import RPi.GPIO as GPIO
 import json
 from adc import ADCReader
+from config import Config
 from status import Status
 import thermistor
 from controller import Controller
@@ -25,6 +26,7 @@ class HotTubServer(object):
 
     def __init__(self):
         self.adc = ADCReader()
+        self.config = Config()
         self.status = Status()
         self.controller = Controller()
         self.freeze_status = 0
@@ -40,6 +42,7 @@ class HotTubServer(object):
 
     def filter_timer(self):
         self.current()
+        self.config.read()
         with open('/home/pi/filter.json') as fd:
             filter_settings = json.loads(fd.read())
         now = datetime.datetime.now()
@@ -71,6 +74,10 @@ class HotTubServer(object):
                 self.last_alert = datetime.datetime.now()
             except Exception as err: print "Error sending SMS alert: {}".format(err)
         Timer(30.0, self.filter_timer).start()
+
+    @cherrypy.expose
+    def getconfig(self):
+        return json.dumps(self.config.to_jsonable(), indent=4)
 
     @cherrypy.expose
     def current(self):

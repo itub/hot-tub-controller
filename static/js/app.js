@@ -5,6 +5,8 @@
 var itubApp = angular.module('itubApp', [])
     .controller('itubController', ['$scope', '$http', '$timeout', function($scope, $http, $timeout) {
         $scope.loaded = false;
+        $scope.two_speed_pump = false;
+        $scope.second_pump = false;
 
         var refresh = function() {
             $http.get('/current').then(function(response) {
@@ -24,6 +26,16 @@ var itubApp = angular.module('itubApp', [])
                 // alert("Error retrieving status. " + err.statusText);
                 $timeout(refresh, 5000);
             });
+            $http.get('/getconfig').then(function(response) {
+                var config = response.data;
+                $scope.two_speed_pump = config.two_speed_pump;
+                $scope.second_pump = config.second_pump;
+            }).finally(function () {
+                $scope.heater_options = $scope.two_speed_pump ?
+                    [{'label': 'Off', 'value': 0}, {'label': 'Low', 'value': 1}, {'label': 'High', 'value': 2}] :
+                    [{'label': 'Off', 'value': 0}, {'label': 'On', 'value': 1}]
+
+            })
         };
 
         refresh();
@@ -40,11 +52,12 @@ var itubApp = angular.module('itubApp', [])
 
         $scope.onchangePump1 = function() {
             var url = "/pump1_";
-            if ($scope.pump1 === 0) {
+            var val = $scope.pump1;
+            if (val === 0) {
                 url += "off";
-            } else if ($scope.pump1 === 1) {
+            } else if (val === 1) {
                 url += "low";
-            } else if ($scope.pump1 === 2) {
+            } else if (val === 2) {
                 url += "high";
             } else {
                 alert("Unexpected pump1 value");
