@@ -63,13 +63,14 @@ class HotTubServer(object):
             try:
                 with open('/home/pi/alerts.json') as fd:
                     alerts = json.loads(fd.read())
-                out = subprocess.check_output(["curl",
-                    "http://textbelt.com/text",
-                    "-d",
-                    "number={}".format(alerts['number']),
-                    "-d",
-                    "message=WARNING: hot tub freeze alarm: {:.1f}F".format(
-                        self.status.tempIn)])
+                if alerts['number']:
+                    out = subprocess.check_output(["curl",
+                        "http://textbelt.com/text",
+                        "-d",
+                        "number={}".format(alerts['number']),
+                        "-d",
+                        "message=WARNING: hot tub freeze alarm: {:.1f}F".format(
+                            self.status.tempIn)])
                 print 'SMS response: {}'.format(out)
                 self.last_alert = datetime.datetime.now()
             except Exception as err: print "Error sending SMS alert: {}".format(err)
