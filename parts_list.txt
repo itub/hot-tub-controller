@@ -1,0 +1,5 @@
+Heater relay: https://www.sparkfun.com/products/100
+ADC: https://www.adafruit.com/product/856
+Thermistors: http://www.digikey.com/product-detail/en/USP10978/615-1087-ND/2651605
+NPN transistor: https://www.sparkfun.com/products/521
+Cobbler: https://www.adafruit.com/products/914
