@@ -13,8 +13,8 @@ import thermistor
 from controller import Controller
 import threading
 from threading import Timer
-import subprocess
 
+from twilio.rest import TwilioRestClient
 
 def validate_password(realm, user, password):
     with open('/home/pi/users.json') as fd:
@@ -57,23 +57,23 @@ class HotTubServer(object):
             self.controller.pump1_low()
         elif self.status.pump1 == 0 and (not self.filter_status == 1) and (not self.freeze_status == 1):
             self.controller.pump1_off()
-        if self.status.tempIn < 50.0 and self.freeze_status == 1 and \
-            (datetime.datetime.now() - self.last_alert).total_seconds() > 3600:
+        if self.status.tempIn < 60.0 and self.freeze_status == 1 and \
+            (datetime.datetime.now() - self.last_alert).total_seconds() > 300:
             print "WARNING: WATER TEMPERATURE ALERT. POSSIBLE POWER OUTAGE."
             try:
                 with open('/home/pi/alerts.json') as fd:
                     alerts = json.loads(fd.read())
                 if alerts['number']:
-                    out = subprocess.check_output(["curl",
-                        "http://textbelt.com/text",
-                        "-d",
-                        "number={}".format(alerts['number']),
-                        "-d",
-                        "message=WARNING: hot tub freeze alarm: {:.1f}F".format(
-                            self.status.tempIn)])
-                print 'SMS response: {}'.format(out)
+                    client = TwilioRestClient(alerts['twilio_sid'], alerts['twilio_token'])
+                    client.messages.create(
+                        to = alerts['number'],
+                        from_ = alerts['twilio_number'],
+                        body = "WARNING - hot tub freeze alarm: {:.1f}F".format(
+                            self.status.tempIn)
+                    )
                 self.last_alert = datetime.datetime.now()
-            except Exception as err: print "Error sending SMS alert: {}".format(err)
+            except Exception as err:
+                print "Error sending SMS alert: {}".format(err)
         Timer(30.0, self.filter_timer).start()
 
     @cherrypy.expose
