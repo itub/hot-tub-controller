@@ -47,7 +47,7 @@ class HotTubServer(object):
                 alerts = json.loads(fd.read())
             if not alerts['number']:
                 return
-            for number in alerts['number'].split(','):
+            for number in alerts['number'].split(',')[:1]:
                 client = TwilioRestClient(alerts['twilio_sid'], alerts['twilio_token'])
                 client.messages.create(
                     to = number,
